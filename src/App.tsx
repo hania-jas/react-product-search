@@ -1,16 +1,17 @@
-import { useEffect, useRef, useState, type JSX } from 'react';
+import { useCallback, useEffect, useRef, useState, type JSX } from 'react';
 import { ProductList } from './components/productList/productList.component';
 import { fetchProducts } from './api/api';
+import { useDebounceValue } from './hooks';
 
 const App: () => JSX.Element = (): JSX.Element => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isApiError, setIsApiError] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const timeoutRef = useRef<number | null>(null);
   const requestIdRef = useRef<number>(0);
+  const debouncedValue = useDebounceValue(searchValue, 400);
 
-    const getApiData = (value: string) => {
+    const getApiData = useCallback((value: string) => {
     const requestId = ++requestIdRef.current;
     setIsApiError(false);
     setIsLoading(true);
@@ -34,20 +35,13 @@ const App: () => JSX.Element = (): JSX.Element => {
         }
         setIsLoading(false)
       });
-  }
+  }, [])
 
   useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-      timeoutRef.current = setTimeout(() => getApiData(searchValue), 400);
-
-      return () => {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-      }
-  }, [searchValue])
+    // setState in effect is intentional here (async fetch flow)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    getApiData(debouncedValue)
+  }, [debouncedValue, getApiData])
 
   const onInputChange = (value: string) => {
     setSearchValue(value);
