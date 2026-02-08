@@ -2,6 +2,7 @@ export interface ProductListProps {
   products: Product[];
   isErrorVisible: boolean;
   isLoading: boolean;
+  debouncedValue: string;
 }
 
 export interface Product {
@@ -11,4 +12,9 @@ export interface Product {
   price: number;
   rating: number;
   inStock: boolean;
+}
+
+export interface HighlightedResult {
+  isMatch: boolean;
+  value: string;
 }
