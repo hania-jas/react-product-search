@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react'
 import { SortSettings } from './productList.enum';
-import type { Product, ProductListProps } from './productList.types';
+import type { HighlightedResult, Product, ProductListProps } from './productList.types';
 
 export const ProductList = (props: ProductListProps) => {
-  const { products, isErrorVisible, isLoading } = props;
+  const { products, isErrorVisible, isLoading, debouncedValue } = props;
   const [filters, setFilters] = useState({
     isInStock: false, type: 'all', sortSetting: SortSettings.Rating_desc
   })
@@ -22,6 +22,23 @@ export const ProductList = (props: ProductListProps) => {
       default:
         return localProducts.sort((a, b) => b.rating - a.rating);
     }
+  }
+
+  const highlightFirstMatchedText = (product: string) => {
+    const query = debouncedValue.trim()
+    const foundIndexStart = product.toLowerCase().indexOf(query.toLowerCase());
+
+    if (!query || foundIndexStart === -1) {
+      return [{ value: product, isMatch: false }]
+    }
+    const foundIndexEnd = foundIndexStart + query.length
+    const result: HighlightedResult[] = [
+      { value: product.slice(0, foundIndexStart), isMatch: false },
+      { value: product.slice(foundIndexStart, foundIndexEnd), isMatch: true },
+      { value: product.slice(foundIndexEnd), isMatch: false }
+    ];
+
+    return result
   }
 
   const visibleProducts = useMemo(() => {
@@ -57,11 +74,15 @@ export const ProductList = (props: ProductListProps) => {
         <>Something went wrong</>
         ) : (
           visibleProducts.length ? (
-            <>
+            <div>
               {visibleProducts.map((product) => (
-                <div key={product.id}>{product.name}</div>
+                <div key={product.id} style={{ display: 'flex', whiteSpace: 'pre-wrap' }}>
+                  {highlightFirstMatchedText(product.name)?.map((chunk: HighlightedResult, index: number) => (
+                    <span key={index} style={chunk.isMatch ? { color: 'red' } : undefined }>{chunk.value}</span>
+                  ))}
+                </div>
               ))}
-            </>
+            </div>
         ) : (
           <>No results</>
         ))

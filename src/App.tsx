@@ -11,31 +11,34 @@ const App: () => JSX.Element = (): JSX.Element => {
   const requestIdRef = useRef<number>(0);
   const debouncedValue = useDebounceValue(searchValue, 400);
 
-    const getApiData = useCallback((value: string) => {
-    const requestId = ++requestIdRef.current;
-    setIsApiError(false);
-    setIsLoading(true);
-    fetchProducts({ query: value })
-      .then((result) => {
-        if (requestId !== requestIdRef.current) {
-          return
-        }
-        setIsApiError(false);
-        setProducts(result);
-      })
-      .catch(() => {
-        if (requestId !== requestIdRef.current) {
-          return
-        }
-        setIsApiError(true);
-      })
-      .finally(() => {
-        if (requestId !== requestIdRef.current) {
-          return
-        }
-        setIsLoading(false)
-      });
-  }, [])
+  const getApiData = useCallback(
+    (value: string) => {
+      const requestId = ++requestIdRef.current;
+      setIsApiError(false);
+      setIsLoading(true);
+      fetchProducts({ query: value })
+        .then((result) => {
+          if (requestId !== requestIdRef.current) {
+            return
+          }
+          setIsApiError(false);
+          setProducts(result);
+        })
+        .catch(() => {
+          if (requestId !== requestIdRef.current) {
+            return
+          }
+          setIsApiError(true);
+        })
+        .finally(() => {
+          if (requestId !== requestIdRef.current) {
+            return
+          }
+          setIsLoading(false)
+        });
+    },
+    []
+  );
 
   useEffect(() => {
     // setState in effect is intentional here (async fetch flow)
@@ -50,7 +53,7 @@ const App: () => JSX.Element = (): JSX.Element => {
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
       <input style={{ width: "300px", margin: "20px 0" }} value={searchValue} type='text' onChange={(e) => onInputChange(e.target.value)} />
-      <ProductList products={products} isErrorVisible={isApiError} isLoading={isLoading} />
+      <ProductList products={products} isErrorVisible={isApiError} isLoading={isLoading} debouncedValue={debouncedValue} />
     </div>
   )
 }
