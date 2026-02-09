@@ -1,14 +1,16 @@
-import React, { useMemo, useState } from 'react'
-import { SortSettings } from './productList.enum';
-import type { HighlightedResult, Product, ProductListProps } from './productList.types';
+import React, { useMemo, useState, type JSX } from 'react'
+import type { ProductListProps } from './productList.types';
+import type { Filters, HighlightedResult, Product } from '../../interfaces';
+import { SortSettings } from '../../enums';
+import { highlightFirstMatchedText } from '../../utils';
 
-export const ProductList = (props: ProductListProps) => {
+export const ProductList: (props: ProductListProps) => JSX.Element = (props: ProductListProps): JSX.Element => {
   const { products, isErrorVisible, isLoading, debouncedValue } = props;
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     isInStock: false, type: 'all', sortSetting: SortSettings.Rating_desc
-  })
+  });
 
-    const onSort = (products: Product[], setting: SortSettings) => {
+    const onSort: (products: Product[], setting: SortSettings) => Product[] = (products: Product[], setting: SortSettings): Product[] => {
     const localProducts = [...products];
 
     switch (setting) {
@@ -24,25 +26,8 @@ export const ProductList = (props: ProductListProps) => {
     }
   }
 
-  const highlightFirstMatchedText = (product: string) => {
-    const query = debouncedValue.trim()
-    const foundIndexStart = product.toLowerCase().indexOf(query.toLowerCase());
-
-    if (!query || foundIndexStart === -1) {
-      return [{ value: product, isMatch: false }]
-    }
-    const foundIndexEnd = foundIndexStart + query.length
-    const result: HighlightedResult[] = [
-      { value: product.slice(0, foundIndexStart), isMatch: false },
-      { value: product.slice(foundIndexStart, foundIndexEnd), isMatch: true },
-      { value: product.slice(foundIndexEnd), isMatch: false }
-    ];
-
-    return result
-  }
-
-  const visibleProducts = useMemo(() => {
-    const filteredProducts = products.filter((p) => {
+  const visibleProducts: Product[] = useMemo((): Product[] => {
+    const filteredProducts: Product[] = products.filter((p: Product): boolean => {
       return (!filters.isInStock || p.inStock) &&
       (filters.type === 'all' || p.category === filters.type)
     });
@@ -50,17 +35,17 @@ export const ProductList = (props: ProductListProps) => {
       return onSort(filteredProducts, filters.sortSetting)
   }, [products, filters])
 
-  const onFilter = (checked: boolean) => {
-    setFilters((prevFilters) => ({ ...prevFilters, isInStock: checked }))
+  const onFilter: (checked: boolean) => void = (checked: boolean): void => {
+    setFilters((prevFilters: Filters): Filters => ({ ...prevFilters, isInStock: checked }))
   }
 
-  const onCategoryChange = (category: string) => {
-    setFilters((prevFilters) => ({ ...prevFilters, type: category }))
+  const onCategoryChange: (category: string) => void = (category: string): void => {
+    setFilters((prevFilters): Filters => ({ ...prevFilters, type: category }))
   }
 
-  const categories = useMemo(
+  const categories: string[] = useMemo(
     () => {
-      const set = new Set(products.map(p => p.category));
+      const set: Set<string> = new Set(products.map((p: Product): string => p.category));
       return ['all', ...Array.from(set)];
     }, [products]);
 
@@ -75,9 +60,9 @@ export const ProductList = (props: ProductListProps) => {
         ) : (
           visibleProducts.length ? (
             <div>
-              {visibleProducts.map((product) => (
+              {visibleProducts.map((product: Product): JSX.Element => (
                 <div key={product.id} style={{ display: 'flex', whiteSpace: 'pre-wrap' }}>
-                  {highlightFirstMatchedText(product.name)?.map((chunk: HighlightedResult, index: number) => (
+                  {highlightFirstMatchedText(product.name, debouncedValue)?.map((chunk: HighlightedResult, index: number): JSX.Element => (
                     <span key={index} style={chunk.isMatch ? { color: 'red' } : undefined }>{chunk.value}</span>
                   ))}
                 </div>
@@ -88,26 +73,26 @@ export const ProductList = (props: ProductListProps) => {
         ))
       )}
       <div>
-        <input checked={filters.isInStock} type="checkbox" name="filterInStock" onChange={(e) => onFilter(e.target.checked)} disabled={isLoading || isErrorVisible} />
+        <input checked={filters.isInStock} type="checkbox" name="filterInStock" onChange={(e: React.ChangeEvent<HTMLInputElement>): void => onFilter(e.target.checked)} disabled={isLoading || isErrorVisible} />
         <label style={{ margin: '10px'}} htmlFor="filterInStock">Only in stock</label>
       </div>
       <select
-        onChange={(e) => onCategoryChange(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>): void => onCategoryChange(e.target.value)}
         disabled={isLoading || isErrorVisible}
         style={{ margin: '10px'}}
         value={filters.type}
       >
-        {categories.map((category) => (
+        {categories.map((category: string): JSX.Element => (
           <option key={category} value={category}>{category}</option>
         ))}
       </select>
       <select
-        onChange={(e) =>  setFilters((prevFilters) => ({ ...prevFilters, sortSetting: e.target.value as SortSettings }))}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>): void =>  setFilters((prevFilters: Filters): Filters => ({ ...prevFilters, sortSetting: e.target.value as SortSettings }))}
         disabled={isLoading || isErrorVisible}
         style={{ margin: '10px'}}
         value={filters.sortSetting}
       >
-        {Object.values(SortSettings).map((setting) => (
+        {Object.values(SortSettings).map((setting: SortSettings): JSX.Element => (
           <option key={setting} value={setting}>{setting}</option>
         ))}
       </select>
