@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type JSX, type RefObject } from 'react';
-import { ProductList } from './components/productList/productList.component';
 import { fetchProducts } from './api/api';
 import { useDebounceValue } from './hooks';
 import type { Product } from './interfaces';
+import { ProductList } from './components';
 
 const App: () => JSX.Element = (): JSX.Element => {
   const [products, setProducts] = useState<Product[]>([]);
