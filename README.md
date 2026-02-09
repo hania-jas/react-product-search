@@ -18,6 +18,14 @@ wyszukiwania produktów z **debounce**, **filtrowaniem**, **sortowaniem** oraz o
 - 🧯 Race condition protection for async responses (request id guard)
 - ✅ TypeScript types for products and props
 
+## 🔧 Internal improvements
+
+- Extracted reusable logic into `utils/`:
+  - highlight text splitter
+- Added proper TypeScript typing
+- Introduced `useDebounceValue` hook to encapsulate debounce logic
+- handling and documented intentional side-effects
+
 ## Tech stack
 
 - React
